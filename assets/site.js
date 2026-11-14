@@ -99,7 +99,7 @@ const $ = id => document.getElementById(id);
         reset=document.getElementById('wipeReset'), badge=document.getElementById('wipeBadge');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const img=new Image(); img.src='assets/window-dirty.webp';
-  let W=0,H=0,dpr=1,last=null,done=false,demo=false,checkT=0,shown=false;
+  let W=0,H=0,dpr=1,last=null,done=false,demo=false,checkT=0,replay=false;
 
   function paint(){
     if(!cv.offsetWidth) return;
@@ -113,7 +113,7 @@ const $ = id => document.getElementById(id);
   }
   function setProgress(p){
     fill.style.width=Math.min(100,p/0.7*100)+'%';
-    if(!done) txt.textContent=p<.02?'Fenster sauber wischen':`${Math.min(99,Math.round(p/0.7*100))} % sauber`;
+    if(!done) txt.textContent=p<.02&&!replay?'Fenster sauber wischen':`${Math.min(99,Math.round(p/0.7*100))} % sauber`;
   }
   const blade=()=>Math.max(70,W*.26);
   function stamp(x,y){
@@ -149,7 +149,7 @@ const $ = id => document.getElementById(id);
   cv.addEventListener('pointermove',e=>{if(demo) return; const p=pos(e); moveSq(p); if(e.buttons||e.pointerType==='mouse'){win.classList.add('hover'); wipeTo(p)}});
   const up=()=>{win.classList.remove('wiping'); last=null; if(!done) check()};
   cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
-  reset.addEventListener('click',()=>{paint(); runDemo(400)});
+  reset.addEventListener('click',()=>{replay=true; paint()});
   let rt; new ResizeObserver(()=>{clearTimeout(rt); rt=setTimeout(()=>{if(!done&&W&&Math.abs(cv.offsetWidth-W)>2) paint()},150)}).observe(cv);
 
   /* short demo: the squeegee pulls one stroke down the glass */
