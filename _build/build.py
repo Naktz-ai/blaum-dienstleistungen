@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SPRITE = open(os.path.join(HERE, "sprite.html"), encoding="utf-8").read()
 HOME_MAIN = open(os.path.join(HERE, "home-main.html"), encoding="utf-8").read()
 
-VER = "19"  # bump after changing style.css or site.js so browsers reload them
+VER = "20"  # bump after changing style.css or site.js so browsers reload them
 PHONE, PHONE_HREF = "0173 2831352", "tel:+491732831352"
 MAIL = "info@blaum-dienstleistungen.de"
 ADDR = "Myliusstraße 11, 50823 Köln"
@@ -80,8 +80,6 @@ def header(active):
       </div>
       <a href="ueber-uns.html"{cur("ueber-uns")}>Über uns</a>
       <a href="kontakt.html"{cur("kontakt")}>Kontakt</a>
-      <a class="mlegal" href="datenschutz.html"{cur("datenschutz")}>Datenschutz</a>
-      <a class="mlegal" href="impressum.html"{cur("impressum")}>Impressum</a>
     </nav>
     <div class="nav-cta">
       <a class="phone-link" href="{PHONE_HREF}">{ico("i-phone")}{PHONE}</a>
