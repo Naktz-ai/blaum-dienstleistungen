@@ -91,59 +91,65 @@ const $ = id => document.getElementById(id);
 })();
 
 
-/* home: wipe the dirty window clean with a squeegee */
+
+/* home: clean the four panes of the window with a squeegee, against the clock */
 (()=>{
   const win=document.getElementById('wipe'), cv=document.getElementById('grime'); if(!win||!cv) return;
-  const ctx=cv.getContext('2d',{willReadFrequently:true});
-  const sq=document.getElementById('squeegee'), txt=document.getElementById('wipeTxt'), ring=document.getElementById('wipeRing'), pct=document.getElementById('wipePct'), panel=document.getElementById('wipePanel'),
-        reset=document.getElementById('wipeReset'), badge=document.getElementById('wipeBadge');
+  const ctx=cv.getContext('2d',{willReadFrequently:true}), el=id=>document.getElementById(id);
+  const sq=el('squeegee'), txt=el('wipeTxt'), sub=el('wipeSub'), panel=el('wipePanel'), reset=el('wipeReset'), badge=el('wipeBadge'),
+        panes=[...el('panes').children], mini=[...el('wipeMini').children];
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const img=new Image(); img.src='assets/window-dirty.webp';
-  let W=0,H=0,dpr=1,last=null,done=false,demo=false,checkT=0,replay=false;
+  let W=0,H=0,dpr=1,last=null,done=false,demo=false,checkT=0,replay=false,ok=[0,0,0,0],t0=0;
 
   function paint(){
     if(!cv.offsetWidth) return;
     dpr=Math.min(devicePixelRatio||1,2); W=cv.offsetWidth; H=cv.offsetHeight;
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.globalCompositeOperation='source-over';
-    // same framing as the clean photo (object-fit:cover, 50% 35%)
     const s=Math.max(W/img.naturalWidth,H/img.naturalHeight), w=img.naturalWidth*s, h=img.naturalHeight*s;
     ctx.drawImage(img,(W-w)*.5,(H-h)*.35,w,h);
-    done=false; win.classList.remove('clean'); panel.classList.remove('done'); badge.classList.remove('show'); setProgress(0);
+    done=false; ok=[0,0,0,0]; t0=0; last=null;
+    win.classList.remove('clean'); panel.classList.remove('done'); badge.classList.remove('show');
+    panes.forEach(e=>e.classList.remove('ok')); mini.forEach(e=>e.classList.remove('ok'));
+    txt.textContent=replay?'Auf die Plätze …':'Vier Scheiben, eine Mission';
+    sub.textContent=replay?'Die Zeit läuft ab dem ersten Wisch':'Wischen Sie alle blitzblank';
   }
-  function setProgress(p){
-    const v=Math.min(1,p/0.7); ring.style.strokeDashoffset=138.2*(1-v); pct.textContent=Math.min(99,Math.round(v*100));
-    if(!done) txt.textContent=p<.02?(replay?'Los geht’s':'Wischen Sie die Scheibe sauber'):(v<.5?'Weiter so':'Fast geschafft');
-  }
-  const blade=()=>Math.max(70,W*.26);
+  const blade=()=>Math.max(60,W*.24);
   function stamp(x,y){
-    const bw=blade(), bh=Math.max(16,bw*.16);
+    const bw=blade(), bh=Math.max(16,bw*.18);
     ctx.globalCompositeOperation='destination-out';
     ctx.fillStyle='rgba(0,0,0,.35)'; ctx.beginPath(); ctx.roundRect(x-bw/2-6,y-bh/2-6,bw+12,bh+12,bh); ctx.fill();
     ctx.fillStyle='#000'; ctx.beginPath(); ctx.roundRect(x-bw/2,y-bh/2,bw,bh,bh/2); ctx.fill();
   }
   function wipeTo(p){
     if(done) return;
+    if(!t0&&!demo) t0=performance.now();
     if(last){const dx=p.x-last.x, dy=p.y-last.y, n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/6)); for(let i=1;i<=n;i++) stamp(last.x+dx*i/n,last.y+dy*i/n)}
     else stamp(p.x,p.y);
     last=p;
-    if(!checkT) checkT=setTimeout(check,180);
+    if(!checkT) checkT=setTimeout(check,160);
   }
   function check(){
-    checkT=0; if(done) return;
-    const d=ctx.getImageData(0,0,cv.width,cv.height).data; let clear=0,n=0;
-    for(let i=3;i<d.length;i+=4*23){n++; if(d[i]<90) clear++}
-    const p=clear/n; setProgress(p);
-    if(p>=.7) finish();
+    checkT=0; if(done||demo) return;
+    const cw=cv.width, ch=cv.height, d=ctx.getImageData(0,0,cw,ch).data, clr=[0,0,0,0], tot=[0,0,0,0];
+    for(let y=0;y<ch;y+=6) for(let x=0;x<cw;x+=6){const q=(y>ch/2?2:0)+(x>cw/2?1:0); tot[q]++; if(d[(y*cw+x)*4+3]<90) clr[q]++}
+    for(let q=0;q<4;q++) if(!ok[q]&&clr[q]/tot[q]>=.6){
+      ok[q]=1; ctx.globalCompositeOperation='destination-out'; ctx.fillStyle='#000'; ctx.fillRect(q%2?W/2:0,q>1?H/2:0,W/2,H/2);
+      panes[q].classList.add('ok'); mini[q].classList.add('ok');
+    }
+    const n=ok[0]+ok[1]+ok[2]+ok[3];
+    if(n===4) return finish();
+    if(n){ txt.textContent=n+' von 4 Scheiben sauber'; sub.textContent=n===3?'Nur noch eine!':'Weiter so'; }
   }
   function finish(){
-    done=true; last=null; win.classList.add('clean'); win.classList.remove('wiping');
-    ring.style.strokeDashoffset=0; pct.textContent=100; panel.classList.add('done'); txt.textContent='Streifenfrei!';
-    setTimeout(()=>badge.classList.add('show'),350);
+    done=true; last=null; win.classList.add('clean'); win.classList.remove('wiping'); panel.classList.add('done');
+    const sec=((performance.now()-t0)/1000).toFixed(1).replace('.',',');
+    txt.textContent='Streifenfrei in '+sec+' s!';
+    setTimeout(()=>badge.classList.add('show'),900);
   }
   const pos=e=>{const r=cv.getBoundingClientRect(), k=W/r.width; return {x:(e.clientX-r.left)*k,y:(e.clientY-r.top)*k}};
   const moveSq=p=>{sq.style.left=p.x+'px'; sq.style.top=p.y+'px'};
-  cv.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse') win.classList.add('hover')});
   cv.addEventListener('pointerleave',()=>{win.classList.remove('hover','wiping'); last=null});
   cv.addEventListener('pointerdown',e=>{if(demo) return; try{cv.setPointerCapture(e.pointerId)}catch(_){} win.classList.add('wiping'); last=null; const p=pos(e); moveSq(p); wipeTo(p)});
   cv.addEventListener('pointermove',e=>{if(demo) return; const p=pos(e); moveSq(p); if(e.buttons||e.pointerType==='mouse'){win.classList.add('hover'); wipeTo(p)}});
@@ -152,17 +158,17 @@ const $ = id => document.getElementById(id);
   reset.addEventListener('click',()=>{replay=true; paint()});
   let rt; new ResizeObserver(()=>{clearTimeout(rt); rt=setTimeout(()=>{if(!done&&W&&Math.abs(cv.offsetWidth-W)>2) paint()},150)}).observe(cv);
 
-  /* short demo: the squeegee pulls one stroke down the glass */
+  /* first view only: the squeegee pulls one short stroke in the top-left pane */
   function runDemo(delay){
     if(reduce) return;
     setTimeout(()=>{
-      if(done||win.classList.contains('wiping')) return;
+      if(done||t0||win.classList.contains('wiping')) return;
       demo=true; win.classList.add('demo','wiping'); last=null;
-      const s0=performance.now(), dur=1500, ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+      const s0=performance.now(), dur=1300, ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
       (function f(now){
-        const k=Math.min(1,(now-s0)/dur), e=ease(k), p={x:W*(.3+.08*Math.sin(e*Math.PI)), y:H*(.12+.6*e)};
+        const k=Math.min(1,(now-s0)/dur), e=ease(k), p={x:W*(.27+.04*Math.sin(e*Math.PI)), y:H*(.14+.28*e)};
         moveSq(p); wipeTo(p);
-        if(k<1) requestAnimationFrame(f); else {demo=false; last=null; win.classList.remove('demo','wiping'); check()}
+        if(k<1) requestAnimationFrame(f); else {demo=false; last=null; win.classList.remove('demo','wiping')}
       })(s0);
     },delay);
   }
