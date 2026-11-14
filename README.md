@@ -1,25 +1,27 @@
-# Blaum Dienstleistungen – Website (Redesign)
+# Blaum Dienstleistungen Website (Redesign)
 
 New design for [blaum-dienstleistungen.de](https://www.blaum-dienstleistungen.de/), with the same pages, names and texts as the current site.
 
 ## Pages
 
-| Page | File |
+| Page | URL |
 | --- | --- |
-| Start | `index.html` |
-| Leistungen (overview) | `leistungen.html` |
-| Praxisreinigung | `praxisreinigung.html` |
-| AirBnB Service | `airbnb-service.html` |
-| Baureinigung | `baureinigung.html` |
-| Treppenhausreinigung | `treppenhausreinigung.html` |
-| Hausmeisterservice | `hausmeisterservice.html` |
-| Unterhaltsreinigung | `unterhaltsreinigung.html` |
-| Glasreinigung | `glasreinigung.html` |
-| Grundreinigung | `grundreinigung.html` |
-| Über uns | `ueber-uns.html` |
-| Kontakt | `kontakt.html` |
-| Datenschutz | `datenschutz.html` |
-| Impressum | `impressum.html` |
+| Start | `/` |
+| Leistungen (overview) | `/leistungen/` |
+| Praxisreinigung | `/praxisreinigung/` |
+| AirBnB Service | `/airbnb-service/` |
+| Baureinigung | `/baureinigung/` |
+| Treppenhausreinigung | `/treppenhausreinigung/` |
+| Hausmeisterservice | `/hausmeisterservice/` |
+| Unterhaltsreinigung | `/unterhaltsreinigung/` |
+| Glasreinigung | `/glasreinigung/` |
+| Grundreinigung | `/grundreinigung/` |
+| Über uns | `/ueber-uns/` |
+| Kontakt | `/kontakt/` |
+| Datenschutz | `/datenschutz/` |
+| Impressum | `/impressum/` |
+
+Each page is a folder with an `index.html`, so links are clean (`/glasreinigung/` instead of `glasreinigung.html`).
 
 ## Editing
 

@@ -1,34 +1,34 @@
-/* Blaum Dienstleistungen – shared site script */
+/* Blaum Dienstleistungen: shared site script */
 const SERVICES = [
-  {id:"unterhalt", page:"unterhaltsreinigung.html", icon:"i-unterhalt", name:"Unterhaltsreinigung", tag:"Regelmäßige Pflege für dauerhafte Sauberkeit.",
+  {id:"unterhalt", page:"unterhaltsreinigung/", icon:"i-unterhalt", name:"Unterhaltsreinigung", tag:"Regelmäßige Pflege für dauerhafte Sauberkeit.",
    desc:"Die laufende Reinigung in festgelegten Intervallen: täglich, wöchentlich oder monatlich. Für Büros, Praxen, Geschäfte, Schulen und öffentliche Einrichtungen. Sie entscheiden, wann und wie oft wir reinigen. Wir erledigen den Rest.",
    items:["Oberflächen- und Bodenreinigung","Sanitärreinigung inkl. Auffüllen von Verbrauchsmaterial","Entleerung von Mülleimern","Staubwischen & Desinfektion häufig berührter Flächen"],
    foot:"Diskret, gründlich und angepasst an Ihre Betriebszeiten."},
-  {id:"praxis", page:"praxisreinigung.html", icon:"i-praxis", name:"Praxisreinigung", tag:"Hygiene ist Vertrauen. Wir sorgen für beides.",
+  {id:"praxis", page:"praxisreinigung/", icon:"i-praxis", name:"Praxisreinigung", tag:"Hygiene ist Vertrauen. Wir sorgen für beides.",
    desc:"Speziell abgestimmt auf Arztpraxen, Zahnarztpraxen, Physiotherapiepraxen und andere Behandlungsräume. Wir reinigen mit größter Sorgfalt und unter Beachtung hygienischer Richtlinien, damit Patienten sich sicher fühlen.",
    items:["Desinfektion von Behandlungsstühlen, Ablagen und Kontaktflächen","Reinigung von Empfangs- und Wartebereichen","Fußbodenreinigung mit professionellen Maschinen","Entleerung und Säuberung von Mülleimern inkl. Hygienebehältern"],
    foot:"Geschultes Personal für sensible Bereiche, stets diskret und verantwortungsbewusst."},
-  {id:"glas", page:"glasreinigung.html", icon:"i-glas", name:"Glasreinigung", tag:"Streifenfreier Glanz für Ihre Glasflächen.",
+  {id:"glas", page:"glasreinigung/", icon:"i-glas", name:"Glasreinigung", tag:"Streifenfreier Glanz für Ihre Glasflächen.",
    desc:"Klare Fenster und saubere Glasflächen hinterlassen den besten Eindruck bei Kunden, Gästen und Bewohnern. Professionelle Glasreinigung in Köln und Umgebung.",
    items:["Reinigung von Fenstern und Rahmen","Schaufensterreinigung für Ladengeschäfte","Glasfassaden und Wintergärten","Glastrennwände und Glastüren im Innenbereich","Umweltfreundliche und streifenfreie Reinigung"],
    foot:"Zuverlässig und flexibel, ganz nach Ihrem Bedarf und Zeitplan."},
-  {id:"treppe", page:"treppenhausreinigung.html", icon:"i-treppe", name:"Treppenhausreinigung", tag:"Der erste Eindruck zählt.",
+  {id:"treppe", page:"treppenhausreinigung/", icon:"i-treppe", name:"Treppenhausreinigung", tag:"Der erste Eindruck zählt.",
    desc:"Ein sauberes Treppenhaus spricht für Ihre Immobilie. Ob Mietshaus, Bürogebäude oder Eigentumsanlage: Wir sorgen für die regelmäßige, zuverlässige Reinigung Ihrer Treppenhäuser.",
    items:["Fegen und Wischen von Stufen, Podesten und Fluren","Reinigung von Geländern, Briefkästen und Handläufen","Entfernung von Spinnweben und Verschmutzungen an Wänden","Säuberung von Eingangsbereichen und Fußmatten"],
    foot:"Gerne mit individuellem Reinigungsplan, abgestimmt auf Ihr Objekt."},
-  {id:"bau", page:"baureinigung.html", icon:"i-bau", name:"Baureinigung", tag:"Vom Rohbau bis zur Schlüsselübergabe.",
+  {id:"bau", page:"baureinigung/", icon:"i-bau", name:"Baureinigung", tag:"Vom Rohbau bis zur Schlüsselübergabe.",
    desc:"Nach Bau- oder Renovierungsarbeiten bleibt häufig viel Schmutz zurück. Unsere Baureinigung sorgt dafür, dass Ihre Räume bezugsfertig und vorzeigbar sind.",
    items:["Baugrobreinigung: Bauschutt, Staub und Verpackungen entfernen","Bauendreinigung: feine Reinigung aller Oberflächen","Böden, Fenster und Sanitärbereiche","Enge Abstimmung mit Bauherren, Handwerkern und Architekten"],
    foot:"Für eine reibungslose Übergabe an Ihre Kunden oder Mieter."},
-  {id:"grund", page:"grundreinigung.html", icon:"i-grund", name:"Grundreinigung", tag:"Tiefensauberkeit bis ins letzte Detail.",
+  {id:"grund", page:"grundreinigung/", icon:"i-grund", name:"Grundreinigung", tag:"Tiefensauberkeit bis ins letzte Detail.",
    desc:"Mehr als nur Putzen: eine umfassende Intensivreinigung aller Flächen, Ecken und schwer zugänglichen Stellen. In Wohn- und Geschäftsräumen, nach Auszügen, Umbauten oder als regelmäßige Frischzellenkur.",
    items:["Entfernung von hartnäckigem Schmutz und Rückständen","Fensterreinigung inkl. Rahmen und Falzen","Reinigung von Türen, Lichtschaltern und Heizkörpern","Gründliche Bodenpflege, auch Versiegelung möglich"],
    foot:"Ideal für Eigentümer, Mieterwechsel oder nach Renovierungen."},
-  {id:"airbnb", page:"airbnb-service.html", icon:"i-airbnb", name:"AirBnB-Service", tag:"Saubere Wohnungen, zufriedene Gäste.",
+  {id:"airbnb", page:"airbnb-service/", icon:"i-airbnb", name:"AirBnB-Service", tag:"Saubere Wohnungen, zufriedene Gäste.",
    desc:"Als Gastgeber möchten Sie, dass sich Ihre Gäste sofort wohlfühlen. Wir übernehmen die vollständige Reinigung und Übergabe Ihrer Ferienwohnung oder Ihres AirBnB-Apartments.",
    items:["Reinigung von Bad, Küche, Böden, Möbeln und Oberflächen","Frisches Bettzeug & Handtücher bereitlegen (optional)","Müllentsorgung & Nachfüllen von Verbrauchsartikeln","Kontrolle auf Schäden oder vergessene Gegenstände"],
    foot:"Auch kurzfristig bei neuen Gästewechseln, zuverlässig und pünktlich."},
-  {id:"haus", page:"hausmeisterservice.html", icon:"i-haus", name:"Hausmeisterservice", tag:"Alles im Blick. Gepflegte Immobilien, zufriedene Bewohner.",
+  {id:"haus", page:"hausmeisterservice/", icon:"i-haus", name:"Hausmeisterservice", tag:"Alles im Blick. Gepflegte Immobilien, zufriedene Bewohner.",
    desc:"Ordnung, Sicherheit und ein reibungsloser Ablauf in und rund um Ihre Immobilie. Ob kleine Reparaturen, regelmäßige Kontrollgänge oder die Pflege von Außenanlagen: Wir sind zuverlässig zur Stelle.",
    items:["Kontrolle technischer Einrichtungen & Allgemeinbereiche","Durchführung kleiner Reparaturen","Bereitstellung & Reinigung der Mülltonnen","Pflege von Gehwegen, Höfen & Grünflächen","Ansprechpartner für Bewohner & Eigentümer","Koordination externer Handwerker bei Bedarf"],
    foot:"Freundlich, zuverlässig und einsatzbereit in Köln und Umgebung."}
@@ -76,7 +76,7 @@ const $ = id => document.getElementById(id);
 (()=>{
   const chips=$('chips'), form=$('form'); if(!form) return;
   if(chips) chips.innerHTML=SERVICES.map(s=>`<label class="chip"><input type="checkbox" name="svc" value="${s.name}" id="chip-${s.id}"><span>${s.name}</span></label>`).join('');
-  const pre=new URLSearchParams(location.search).get('leistung'); if(pre){const c=$('chip-'+pre); if(c) c.checked=true}
+  const pre=new URLSearchParams(location.search).get('leistung'); const ps=pre&&SERVICES.find(s=>s.id===pre||s.page===pre+'/'); if(ps){const c=$('chip-'+ps.id); if(c) c.checked=true}
   document.addEventListener('click',e=>{const p=e.target.closest('[data-pick]'); if(p){const c=$('chip-'+p.dataset.pick); if(c) c.checked=true}});
   form.addEventListener('submit',e=>{
     e.preventDefault(); const f=e.target, sent=$('sent');

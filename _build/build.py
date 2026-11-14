@@ -5,6 +5,7 @@ Edit page texts in the data below (or _build/home-main.html for the homepage),
 then run the script again. Shared styles: assets/style.css, script: assets/site.js.
 """
 import os
+import re
 from html import escape as e
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,7 +67,7 @@ def header(active):
         for slug, name, icon, _ in SERVICES)
     return f"""<header id="top">
   <div class="wrap nav">
-    <a href="index.html" class="logo" aria-label="Blaum Dienstleistungen – Startseite">
+    <a href="index.html" class="logo" aria-label="Blaum Dienstleistungen, Startseite">
       <img class="mark" src="assets/logo-mark.png" alt="" width="44" height="43">
       <span>Blaum<small>Dienstleistungen</small></span>
     </a>
@@ -98,7 +99,7 @@ def footer():
   <div class="wrap">
     <div class="foot">
       <div>
-        <a href="index.html" class="foot-logo" aria-label="Blaum Dienstleistungen – Startseite"><img src="assets/logo-full.png" alt="Blaum Dienstleistungen – Wir halten Ihre Umgebung sauber" width="150" height="194" loading="lazy"></a>
+        <a href="index.html" class="foot-logo" aria-label="Blaum Dienstleistungen, Startseite"><img src="assets/logo-full.png" alt="Blaum Dienstleistungen. Wir halten Ihre Umgebung sauber" width="150" height="194" loading="lazy"></a>
         <p>Blaum Dienstleistungen. Gebäudereinigung in Köln &amp; Umgebung.</p>
       </div>
       <div>
@@ -133,11 +134,38 @@ def footer():
 """
 
 
+LINK = re.compile(r'(href|src)="(?!https?:|mailto:|tel:|#|data:)([^"]*)"')
+
+
+def clean_urls(html, prefix):
+    """Turn 'x.html' links into clean folder URLs ('x/') relative to the page."""
+    def fix(m):
+        attr, url = m.groups()
+        if url.startswith("assets/"):
+            url = prefix + url
+        elif url.startswith("index.html"):
+            url = (prefix or "./") + url[len("index.html"):]
+        else:
+            m2 = re.match(r"([a-z0-9-]+)\.html(.*)$", url)
+            if m2:
+                url = f"{prefix}{m2.group(1)}/{m2.group(2)}"
+        return f'{attr}="{url}"'
+    return LINK.sub(fix, html)
+
+
+def write(slug, html):
+    """index -> /index.html, everything else -> /<slug>/index.html (served as /<slug>/)."""
+    prefix = "" if slug == "index" else "../"
+    folder = ROOT if slug == "index" else os.path.join(ROOT, slug)
+    os.makedirs(folder, exist_ok=True)
+    with open(os.path.join(folder, "index.html"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(clean_urls(html, prefix))
+    print("wrote", "/" if slug == "index" else f"/{slug}/")
+
+
 def page(fname, title, desc, active, main):
     html = head(title, desc) + header(active) + "\n<main>\n" + main + "\n</main>\n" + footer()
-    with open(os.path.join(ROOT, fname), "w", encoding="utf-8", newline="\n") as f:
-        f.write(html)
-    print("wrote", fname)
+    write(fname[:-len(".html")], html)
 
 
 def crumbs(*items):
@@ -182,14 +210,14 @@ def cta_band(title, paras, pick=None, eyebrow="Kontakt"):
 DETAIL = {
     "praxisreinigung": dict(
         img="praxis", badge="Hygienisch sauber",
-        lead="Hygiene ist Vertrauen – wir sorgen für beides.",
+        lead="Hygiene ist Vertrauen. Wir sorgen für beides.",
         intro=["In Arztpraxen, Zahnarztpraxen und Therapieeinrichtungen spielt Hygiene eine entscheidende Rolle. Patienten und Besucher sollen sich wohlfühlen und zugleich auf höchste Sauberkeit und Infektionsschutz vertrauen können.",
                "Mit Blaum Dienstleistungen haben Sie einen erfahrenen Partner an Ihrer Seite, der die besonderen Anforderungen der Praxisreinigung kennt und erfüllt.",
-               "Wir reinigen Ihre Praxisräume gründlich, hygienisch und diskret – angepasst an Ihre Öffnungszeiten und an die individuellen Hygienevorgaben."],
+               "Wir reinigen Ihre Praxisräume gründlich, hygienisch und diskret, angepasst an Ihre Öffnungszeiten und an die individuellen Hygienevorgaben."],
         sections=[
             ("features", "Unsere Leistungen im Überblick", [
                 ("Böden & Oberflächen gründlich reinigen", "Hartböden, Teppiche, Möbeloberflächen, Fensterbänke"),
-                ("Desinfektion von Behandlungs- und Untersuchungsräumen", "Tische, Liegen, medizinische Geräte – gemäß Hygienevorgaben"),
+                ("Desinfektion von Behandlungs- und Untersuchungsräumen", "Tische, Liegen, medizinische Geräte, gemäß Hygienevorgaben"),
                 ("Empfangsbereiche & Wartezimmer reinigen und desinfizieren", "Tresen, Stühle, Wartezonen, Zeitschriftenablagen"),
                 ("Sanitärbereiche hygienisch reinigen", "Toiletten, Waschbecken, Armaturen, Spiegel"),
                 ("Hygieneschwerpunkte: Türen, Griffe, Lichtschalter", "Regelmäßige Desinfektion stark berührter Flächen"),
@@ -197,7 +225,7 @@ DETAIL = {
                 ("Abfallbehälter leeren & hygienische Entsorgung", "")]),
             ("benefits", "Warum Blaum Dienstleistungen?", [
                 "Fachgerechte Hygienereinigung nach aktuellen Standards", "Diskretes, freundliches Personal",
-                "Reinigung nach Ihrem Zeitplan – auch außerhalb der Sprechzeiten",
+                "Reinigung nach Ihrem Zeitplan, auch außerhalb der Sprechzeiten",
                 "Flexible Leistungen: von täglicher Unterhaltsreinigung bis zu individuellen Hygienediensten",
                 "Verwendung von umweltfreundlichen und zugelassenen Reinigungs- und Desinfektionsmitteln"]),
             ("audience", "Für wen bieten wir Praxisreinigung an?", [
@@ -205,13 +233,13 @@ DETAIL = {
                 "Physiotherapie- und Ergotherapiepraxen", "Heilpraktiker", "Kosmetik- und Fußpflegepraxen"]),
         ],
         cta=("Sprechen Sie uns an!", ["Gern erstellen wir Ihnen ein individuelles Angebot für die Reinigung Ihrer Praxisräume.",
-                                      "Nehmen Sie Kontakt mit uns auf – wir freuen uns auf Ihre Anfrage!"])),
+                                      "Nehmen Sie Kontakt mit uns auf. Wir freuen uns auf Ihre Anfrage!"])),
     "airbnb-service": dict(
         img="airbnb", badge="Bereit für Gäste",
-        lead="Saubere Apartments – zufriedene Gäste",
+        lead="Saubere Apartments, zufriedene Gäste",
         intro=["Als Gastgeber wissen Sie: Der erste Eindruck zählt!",
                "Ein frisch gereinigtes und ordentlich vorbereitetes Apartment trägt entscheidend dazu bei, dass Ihre Gäste sich willkommen fühlen und positive Bewertungen hinterlassen.",
-               "Mit Blaum Dienstleistungen haben Sie einen zuverlässigen Partner für die professionelle Reinigung und Übergabe Ihrer Ferienwohnung oder AirBnB-Unterkunft – flexibel, gründlich und termintreu."],
+               "Mit Blaum Dienstleistungen haben Sie einen zuverlässigen Partner für die professionelle Reinigung und Übergabe Ihrer Ferienwohnung oder AirBnB-Unterkunft, flexibel, gründlich und termintreu."],
         sections=[
             ("features", "Unser Service für Ihre Ferienwohnung", [
                 ("Komplette Reinigung von Bad & Küche", ""), ("Reinigung aller Böden, Möbel und Oberflächen", ""),
@@ -220,21 +248,21 @@ DETAIL = {
                 ("Kontrolle auf Schäden oder vergessene Gegenstände", ""),
                 ("Flexible Einsätze, auch kurzfristig bei schnellen Gästewechseln", "")]),
             ("benefits", "Warum Blaum Dienstleistungen für Ihren AirBnB-Service?", [
-                "Zuverlässigkeit und Pünktlichkeit", "Flexibler Service – angepasst an Ihre Buchungen",
+                "Zuverlässigkeit und Pünktlichkeit", "Flexibler Service, angepasst an Ihre Buchungen",
                 "Sorgfältige und hygienische Reinigung", "Persönlicher Kontakt und individuelle Absprachen",
                 "Faire Preise und transparente Leistungen"]),
             ("audience", "Für wen bieten wir unseren AirBnB-Service an?", [
                 "Private Gastgeber in Köln", "Professionelle Vermieter & Agenturen",
                 "Betreiber von Ferienwohnungen und möblierten Apartments"]),
         ],
-        cta=("Kontaktieren Sie uns!", ["Gern übernehmen wir die Reinigung und Übergabe Ihrer Ferienwohnung – damit Ihre Gäste begeistert sind und gerne wiederkommen.",
-                                       "Fordern Sie jetzt Ihr individuelles Angebot an – wir freuen uns auf Ihre Anfrage!"])),
+        cta=("Kontaktieren Sie uns!", ["Gern übernehmen wir die Reinigung und Übergabe Ihrer Ferienwohnung, damit Ihre Gäste begeistert sind und gerne wiederkommen.",
+                                       "Fordern Sie jetzt Ihr individuelles Angebot an. Wir freuen uns auf Ihre Anfrage!"])),
     "baureinigung": dict(
         img="bau", badge="Bezugsfertig",
         lead="Saubere Übergabe nach Bau oder Renovierung",
-        intro=["Ob Neubau, Umbau oder Sanierung – nach Abschluss der Bauarbeiten ist meist eine gründliche Reinigung nötig, damit die Immobilie in bestem Zustand übergeben werden kann.",
-               "Mit Blaum Dienstleistungen erhalten Sie eine professionelle Baureinigung in Köln und Umgebung: Wir sorgen dafür, dass Staub, Bauschmutz und Rückstände zuverlässig entfernt werden – für eine bezugsfertige und saubere Immobilie.",
-               "Wir arbeiten flexibel, termintreu und stimmen unsere Leistungen individuell auf Ihre Baustelle ab. Ob Wohnhäuser, Gewerbeobjekte oder öffentliche Gebäude – wir sind für Sie da!"],
+        intro=["Ob Neubau, Umbau oder Sanierung: Nach Abschluss der Bauarbeiten ist meist eine gründliche Reinigung nötig, damit die Immobilie in bestem Zustand übergeben werden kann.",
+               "Mit Blaum Dienstleistungen erhalten Sie eine professionelle Baureinigung in Köln und Umgebung: Wir sorgen dafür, dass Staub, Bauschmutz und Rückstände zuverlässig entfernt werden, für eine bezugsfertige und saubere Immobilie.",
+               "Wir arbeiten flexibel, termintreu und stimmen unsere Leistungen individuell auf Ihre Baustelle ab. Ob Wohnhäuser, Gewerbeobjekte oder öffentliche Gebäude: Wir sind für Sie da!"],
         sections=[
             ("features", "Unsere Leistungen im Bereich Baureinigung", [
                 ("Entfernung von Bauschmutz, Staub und Bauresten", ""),
@@ -253,12 +281,12 @@ DETAIL = {
                 "Privatkunden nach Neubau oder Renovierung", "Gewerbliche Kunden (Büros, Ladenlokale, Praxisräume etc.)"]),
         ],
         cta=("Sprechen Sie uns an!", ["Ob Neubau, Umbau oder Sanierung: Wir übernehmen die professionelle Baureinigung in Köln und Umgebung.",
-                                      "Gern erstellen wir Ihnen ein individuelles und unverbindliches Angebot – kontaktieren Sie uns jetzt!"])),
+                                      "Gern erstellen wir Ihnen ein individuelles und unverbindliches Angebot. Kontaktieren Sie uns jetzt!"])),
     "treppenhausreinigung": dict(
         img="treppe", badge="Erster Eindruck",
         lead="Saubere und gepflegte Gemeinschaftsbereiche",
-        intro=["Das Treppenhaus ist die Visitenkarte eines Gebäudes – es vermittelt Mietern, Bewohnern und Besuchern den ersten Eindruck. Ein sauberes und ordentlich gepflegtes Treppenhaus trägt wesentlich zum Erscheinungsbild und zur Werterhaltung Ihrer Immobilie bei.",
-               "Mit Blaum Dienstleistungen bieten wir Ihnen eine professionelle und zuverlässige Treppenhausreinigung in Köln und Umgebung. Ob Wohnhaus, Bürogebäude oder Gewerbeimmobilie – wir sorgen für gepflegte Gemeinschaftsbereiche, die sich sehen lassen können."],
+        intro=["Das Treppenhaus ist die Visitenkarte eines Gebäudes. Es vermittelt Mietern, Bewohnern und Besuchern den ersten Eindruck. Ein sauberes und ordentlich gepflegtes Treppenhaus trägt wesentlich zum Erscheinungsbild und zur Werterhaltung Ihrer Immobilie bei.",
+               "Mit Blaum Dienstleistungen bieten wir Ihnen eine professionelle und zuverlässige Treppenhausreinigung in Köln und Umgebung. Ob Wohnhaus, Bürogebäude oder Gewerbeimmobilie: Wir sorgen für gepflegte Gemeinschaftsbereiche, die sich sehen lassen können."],
         sections=[
             ("features", "Unsere Leistungen im Bereich Treppenhausreinigung", [
                 ("Gründliche Reinigung von Treppen, Stufen und Podesten", ""),
@@ -277,17 +305,17 @@ DETAIL = {
                 "Hausverwaltungen", "Eigentümergemeinschaften (WEG)", "Wohnungsbaugesellschaften",
                 "Private Vermieter", "Gewerbeobjekte & Bürogebäude"]),
         ],
-        cta=("Sprechen Sie uns an!", ["Gern übernehmen wir die regelmäßige Reinigung Ihrer Treppenhäuser – damit Ihre Immobilie stets gepflegt wirkt und Mieter sowie Besucher einen positiven Eindruck erhalten.",
-                                      "Fordern Sie jetzt Ihr individuelles und unverbindliches Angebot an – wir freuen uns auf Ihre Anfrage!"])),
+        cta=("Sprechen Sie uns an!", ["Gern übernehmen wir die regelmäßige Reinigung Ihrer Treppenhäuser, damit Ihre Immobilie stets gepflegt wirkt und Mieter sowie Besucher einen positiven Eindruck erhalten.",
+                                      "Fordern Sie jetzt Ihr individuelles und unverbindliches Angebot an. Wir freuen uns auf Ihre Anfrage!"])),
     "hausmeisterservice": dict(
         img="haus", badge="Alles im Blick",
         lead="Zuverlässige Betreuung für Ihre Immobilie.",
-        intro=["Ein gepflegtes Gebäude und ein reibungsloser Ablauf im Alltag – das ist, was Eigentümer, Mieter und Verwalter erwarten. Unser Hausmeisterservice kümmert sich zuverlässig um alle anfallenden Aufgaben rund um Ihre Immobilie – kompetent, freundlich und einsatzbereit.",
+        intro=["Ein gepflegtes Gebäude und ein reibungsloser Ablauf im Alltag: Das ist, was Eigentümer, Mieter und Verwalter erwarten. Unser Hausmeisterservice kümmert sich zuverlässig um alle anfallenden Aufgaben rund um Ihre Immobilie, kompetent, freundlich und einsatzbereit.",
                "Ob regelmäßige Kontrollgänge, kleinere Reparaturen oder die Koordination von Handwerkern: Wir sind Ihr Ansprechpartner für Werterhalt und Ordnung."],
         sections=[
             ("features", "Unsere Leistungen im Überblick", [
                 ("Kleinreparaturen", "Schnelle Hilfe bei alltäglichen Mängeln: defekte Leuchtmittel, tropfende Wasserhähne, lose Türgriffe u. v. m."),
-                ("Zustandskontrollen", "Regelmäßige Begehung von Technikräumen, Treppenhäusern, Tiefgaragen oder Außenanlagen – mit Dokumentation auf Wunsch."),
+                ("Zustandskontrollen", "Regelmäßige Begehung von Technikräumen, Treppenhäusern, Tiefgaragen oder Außenanlagen, mit Dokumentation auf Wunsch."),
                 ("Müllbereitstellung & Sauberkeit", "Bereitstellen der Mülltonnen, Reinigung von Müllplätzen und Kontrolle der Mülltrennung."),
                 ("Pflege von Außenanlagen", "Kehren, Unkrautentfernung, Laubbeseitigung, Winterdienst (nach Vereinbarung)."),
                 ("Koordination externer Dienstleister", "Anwesenheit bei Reparaturen, Kontakt mit Handwerkern, Meldung von Störungen."),
@@ -300,35 +328,35 @@ DETAIL = {
                 "Mehrfamilienhäuser & Wohnanlagen", "Schulen & Kindergärten",
                 "Gewerbeimmobilien & Ladenlokale", "Privatobjekte & kleine Wohnhäuser"]),
         ],
-        cta=("Sprechen Sie uns an!", ["Mit unserem Hausmeisterservice haben Sie weniger Sorgen – und Ihre Mieter, Kunden oder Bewohner ein gepflegtes, funktionierendes Umfeld."])),
+        cta=("Sprechen Sie uns an!", ["Mit unserem Hausmeisterservice haben Sie weniger Sorgen, und Ihre Mieter, Kunden oder Bewohner ein gepflegtes, funktionierendes Umfeld."])),
     "unterhaltsreinigung": dict(
         img="unterhalt", badge="Im festen Rhythmus",
         lead="Regelmäßige Sauberkeit für ein gepflegtes Umfeld",
-        intro=["Eine saubere Umgebung trägt maßgeblich zum Wohlbefinden bei – ob im Büro, in der Praxis oder im Wohnhaus. Unsere Unterhaltsreinigung sorgt für dauerhafte Sauberkeit in Ihren Räumlichkeiten, ganz nach Ihren Wünschen und im individuell abgestimmten Rhythmus.",
-               "Mit einem zuverlässigen Team, modernen Reinigungsmitteln und einem geschulten Blick für Details übernehmen wir die regelmäßige Reinigung Ihrer Immobilie – damit Sie sich auf das Wesentliche konzentrieren können."],
+        intro=["Eine saubere Umgebung trägt maßgeblich zum Wohlbefinden bei, ob im Büro, in der Praxis oder im Wohnhaus. Unsere Unterhaltsreinigung sorgt für dauerhafte Sauberkeit in Ihren Räumlichkeiten, ganz nach Ihren Wünschen und im individuell abgestimmten Rhythmus.",
+               "Mit einem zuverlässigen Team, modernen Reinigungsmitteln und einem geschulten Blick für Details übernehmen wir die regelmäßige Reinigung Ihrer Immobilie, damit Sie sich auf das Wesentliche konzentrieren können."],
         sections=[
             ("features", "Unsere Leistungen im Rahmen der Unterhaltsreinigung", [
-                ("Oberflächenreinigung", "Tische, Arbeitsflächen, Fensterbänke, Türklinken & Co – gründlich abgewischt und desinfiziert."),
+                ("Oberflächenreinigung", "Tische, Arbeitsflächen, Fensterbänke, Türklinken & Co: gründlich abgewischt und desinfiziert."),
                 ("Mobiliarpflege", "Schonende Reinigung von Bürostühlen, Schränken, Empfangsbereichen u.v.m."),
-                ("Bodenpflege", "Staubsaugen, Kehren oder Wischen – je nach Bodenart individuell angepasst."),
+                ("Bodenpflege", "Staubsaugen, Kehren oder Wischen, je nach Bodenart individuell angepasst."),
                 ("Sanitärreinigung", "Hygienische Reinigung von Toiletten, Waschbecken, Duschen & Gemeinschaftsbereichen."),
                 ("Abfallentsorgung", "Leeren von Mülleimern, fachgerechtes Trennen & Austausch von Müllbeuteln."),
                 ("Küchen- & Teeküchenpflege", "Arbeitsplatten, Spülbecken, Kaffeemaschinen und Küchenutensilien reinigen & pflegen."),
-                ("Reinigungsplan nach Maß", "Täglich, wöchentlich oder in individuellem Turnus – wir richten uns ganz nach Ihnen.")]),
+                ("Reinigungsplan nach Maß", "Täglich, wöchentlich oder in individuellem Turnus. Wir richten uns ganz nach Ihnen.")]),
             ("audience", "Geeignet für", [
                 "Büros & Agenturen", "Praxen & Kanzleien", "Wohnanlagen & Hausverwaltungen",
                 "Schulen & Kitas", "Läden & Gastronomie", "Privatkunden mit regelmäßiger Reinigung"]),
             ("benefits", "Ihre Vorteile mit Blaum Dienstleistungen", [
                 "Regelmäßige & verlässliche Reinigung", "Freundliches, geschultes Personal",
                 "Diskrete & sorgfältige Arbeitsweise", "Maßgeschneiderte Reinigungspläne",
-                "Flexible Zeiten – auch früh morgens oder spät abends", "Fester Ansprechpartner für Ihre Anliegen"]),
+                "Flexible Zeiten, auch früh morgens oder spät abends", "Fester Ansprechpartner für Ihre Anliegen"]),
         ],
-        cta=("Sprechen Sie uns an!", ["Ob einmal pro Woche oder täglich – wir richten uns ganz nach Ihrem Bedarf. Gerne erstellen wir ein individuelles Angebot für Ihre Unterhaltsreinigung in Köln und Umgebung."])),
+        cta=("Sprechen Sie uns an!", ["Ob einmal pro Woche oder täglich: Wir richten uns ganz nach Ihrem Bedarf. Gerne erstellen wir ein individuelles Angebot für Ihre Unterhaltsreinigung in Köln und Umgebung."])),
     "glasreinigung": dict(
         img="glas", badge="Streifenfrei",
         lead="Für streifenfreien Durchblick und glänzende Fenster.",
-        intro=["Klare Sicht und gepflegte Glasflächen sind die Visitenkarte eines Gebäudes — egal ob im privaten oder gewerblichen Bereich. Mit unserer professionellen Glasreinigung sorgen wir dafür, dass Ihre Fenster, Glasfronten und Rahmen dauerhaft sauber und gepflegt bleiben.",
-               "Ob kleine Fenster in Wohnungen, große Glasfassaden in Büros oder Schaufenster von Ladengeschäften — wir reinigen schnell, gründlich und zuverlässig."],
+        intro=["Klare Sicht und gepflegte Glasflächen sind die Visitenkarte eines Gebäudes, egal ob im privaten oder gewerblichen Bereich. Mit unserer professionellen Glasreinigung sorgen wir dafür, dass Ihre Fenster, Glasfronten und Rahmen dauerhaft sauber und gepflegt bleiben.",
+               "Ob kleine Fenster in Wohnungen, große Glasfassaden in Büros oder Schaufenster von Ladengeschäften: Wir reinigen schnell, gründlich und zuverlässig."],
         sections=[
             ("features", "Unser Service", [
                 ("Reinigung von Fenstern & Rahmen", ""), ("Glasfassaden", ""), ("Glastrennwände & Glastüren", ""),
@@ -343,16 +371,16 @@ DETAIL = {
                 "Firmen & Gewerbe", "Privatwohnungen & Einfamilienhäuser", "Ladengeschäfte & Gastronomie",
                 "Arztpraxen & Kanzleien", "Hotels & Ferienwohnungen"]),
         ],
-        cta=("Kontaktieren Sie uns!", ["Wir erstellen Ihnen gerne ein individuelles Angebot für Ihre Glasreinigung in Köln und Umgebung — einmalig oder als regelmäßiger Service.",
-                                       "Jetzt anfragen — wir freuen uns auf Sie!"])),
+        cta=("Kontaktieren Sie uns!", ["Wir erstellen Ihnen gerne ein individuelles Angebot für Ihre Glasreinigung in Köln und Umgebung, einmalig oder als regelmäßiger Service.",
+                                       "Jetzt anfragen. Wir freuen uns auf Sie!"])),
     "grundreinigung": dict(
         img="grund", badge="Bis ins Detail",
         lead="Perfekte Sauberkeit für Ihre Räume",
         intro=["Im Laufe der Zeit sammeln sich Schmutz, Staub und Ablagerungen, die bei der normalen Unterhaltsreinigung oft nicht vollständig entfernt werden. Hier kommt die Grundreinigung ins Spiel: eine besonders gründliche, tiefgehende Reinigung Ihrer Räume.",
-               "Mit Blaum Dienstleistungen bieten wir Ihnen eine professionelle Grundreinigung in Köln und Umgebung – für Wohnräume, Büros, Praxen, Gewerbeflächen und mehr. Wir sorgen dafür, dass Ihre Räume wieder in neuem Glanz erstrahlen."],
+               "Mit Blaum Dienstleistungen bieten wir Ihnen eine professionelle Grundreinigung in Köln und Umgebung, für Wohnräume, Büros, Praxen, Gewerbeflächen und mehr. Wir sorgen dafür, dass Ihre Räume wieder in neuem Glanz erstrahlen."],
         sections=[
             ("features", "Unsere Leistungen im Bereich Grundreinigung", [
-                ("Gründliche Reinigung aller Bodenbeläge", "Teppich, Fliesen, Laminat, PVC, Parkett – inkl. Spezialbehandlung"),
+                ("Gründliche Reinigung aller Bodenbeläge", "Teppich, Fliesen, Laminat, PVC, Parkett, inkl. Spezialbehandlung"),
                 ("Reinigung von Türen, Türrahmen und Sockelleisten", ""),
                 ("Intensive Fenster- und Glasreinigung", "Innen und außen"),
                 ("Gründliche Reinigung von Möbeln, Schränken und Oberflächen", ""),
@@ -369,25 +397,25 @@ DETAIL = {
                 "Individuelle Planung je nach Objekt und Verschmutzungsgrad",
                 "Fachkundige Reinigungskräfte mit Erfahrung",
                 "Einsatz hochwertiger und umweltfreundlicher Reinigungsmittel",
-                "Flexible Termine – auch kurzfristig möglich"]),
+                "Flexible Termine, auch kurzfristig möglich"]),
             ("audience", "Für wen bieten wir Grundreinigung an?", [
                 "Privatkunden (Wohnungen & Häuser)", "Hausverwaltungen & Vermieter", "Gewerbliche Kunden & Büros",
                 "Praxen & Therapieräume", "Einzelhandel & Gastronomie"]),
         ],
         cta=("Sprechen Sie uns an!", ["Gern erstellen wir Ihnen ein individuelles und unverbindliches Angebot für Ihre Grundreinigung in Köln und Umgebung.",
-                                      "Kontaktieren Sie uns jetzt – wir freuen uns auf Ihre Anfrage!"])),
+                                      "Kontaktieren Sie uns jetzt. Wir freuen uns auf Ihre Anfrage!"])),
 }
 
 # Short texts from the live "Leistungen" overview page
 OVERVIEW = {
-    "airbnb-service": ("AirBnB-Reinigung & Übergabe", "Komplette Reinigung und vorbereitende Übergabe Ihrer Ferienwohnungen und AirBnB-Apartments — für zufriedene Gäste und stressfreie Wechsel."),
-    "unterhaltsreinigung": ("Unterhaltsreinigung", "Regelmäßige Reinigung von Büros, Praxen und gewerblichen Räumen — zuverlässig und flexibel."),
-    "praxisreinigung": ("Praxisreinigung", "Hygienische und gründliche Reinigung für Arztpraxen, Therapiezentren und Gesundheitsdienstleister — für ein sicheres und sauberes Umfeld."),
-    "grundreinigung": ("Grundreinigung", "Gründliche Intensivreinigung von Böden, Oberflächen und schwer zugänglichen Bereichen — ideal als Ergänzung zur regelmäßigen Reinigung."),
-    "glasreinigung": ("Glasreinigung", "Streifenfreie Reinigung von Fenstern, Glasfassaden und Schaufenstern — für klaren Durchblick und gepflegte Optik."),
-    "treppenhausreinigung": ("Treppenhausreinigung", "Saubere Treppenhäuser und Gemeinschaftsbereiche — für ein gepflegtes Wohnumfeld in Mehrfamilienhäusern und Gewerbeobjekten."),
-    "baureinigung": ("Baureinigung", "Reinigung nach Neu- oder Umbau, Renovierungen oder Sanierungen — wir entfernen Bauschmutz und sorgen für bezugsfertige Räume."),
-    "hausmeisterservice": ("Hausmeisterservice", "Zuverlässige Betreuung rund ums Gebäude – von kleinen Reparaturen bis zur Objektkontrolle. Unser Hausmeisterservice sorgt für Ordnung, Sicherheit und den Werterhalt Ihrer Immobilie. Ideal für Wohnanlagen, Gewerbeobjekte und private Immobilien."),
+    "airbnb-service": ("AirBnB-Reinigung & Übergabe", "Komplette Reinigung und vorbereitende Übergabe Ihrer Ferienwohnungen und AirBnB-Apartments, für zufriedene Gäste und stressfreie Wechsel."),
+    "unterhaltsreinigung": ("Unterhaltsreinigung", "Regelmäßige Reinigung von Büros, Praxen und gewerblichen Räumen, zuverlässig und flexibel."),
+    "praxisreinigung": ("Praxisreinigung", "Hygienische und gründliche Reinigung für Arztpraxen, Therapiezentren und Gesundheitsdienstleister, für ein sicheres und sauberes Umfeld."),
+    "grundreinigung": ("Grundreinigung", "Gründliche Intensivreinigung von Böden, Oberflächen und schwer zugänglichen Bereichen, ideal als Ergänzung zur regelmäßigen Reinigung."),
+    "glasreinigung": ("Glasreinigung", "Streifenfreie Reinigung von Fenstern, Glasfassaden und Schaufenstern, für klaren Durchblick und gepflegte Optik."),
+    "treppenhausreinigung": ("Treppenhausreinigung", "Saubere Treppenhäuser und Gemeinschaftsbereiche, für ein gepflegtes Wohnumfeld in Mehrfamilienhäusern und Gewerbeobjekten."),
+    "baureinigung": ("Baureinigung", "Reinigung nach Neu- oder Umbau, Renovierungen oder Sanierungen. Wir entfernen Bauschmutz und sorgen für bezugsfertige Räume."),
+    "hausmeisterservice": ("Hausmeisterservice", "Zuverlässige Betreuung rund ums Gebäude, von kleinen Reparaturen bis zur Objektkontrolle. Unser Hausmeisterservice sorgt für Ordnung, Sicherheit und den Werterhalt Ihrer Immobilie. Ideal für Wohnanlagen, Gewerbeobjekte und private Immobilien."),
 }
 OVERVIEW_ORDER = ["airbnb-service", "unterhaltsreinigung", "praxisreinigung", "grundreinigung",
                   "glasreinigung", "treppenhausreinigung", "baureinigung", "hausmeisterservice"]
@@ -507,7 +535,7 @@ def build_overview():
       <span class="eyebrow">Unsere Leistungen</span>
       <h1 style="font-size:clamp(2.4rem,4.4vw,3.9rem)">Professionelle Reinigung und Service für <span class="shine">Köln</span> und Umgebung</h1>
       <div class="intro">
-        <p>Wir von Blaum Dienstleistungen bieten Ihnen ein umfangreiches Leistungsspektrum im Bereich Reinigung und Objektpflege — zuverlässig, flexibel und ganz auf Ihre Bedürfnisse abgestimmt.</p>
+        <p>Wir von Blaum Dienstleistungen bieten Ihnen ein umfangreiches Leistungsspektrum im Bereich Reinigung und Objektpflege, zuverlässig, flexibel und ganz auf Ihre Bedürfnisse abgestimmt.</p>
         <p>Ob für Privatkunden, Gewerbe oder Ferienwohnungen: Wir sorgen für Sauberkeit und ein gepflegtes Umfeld, auf das Sie sich verlassen können.</p>
       </div>
       <div class="hero-ctas">
@@ -532,7 +560,7 @@ def build_overview():
   </div>
 </section>
 """ + cta_band("Haben wir Ihr Interesse geweckt?", ["Melden Sie sich gern für eine Beratung bei uns. Wir beantworten Ihre Fragen und gehen individuell auf Ihr Anliegen ein."])
-    page("leistungen.html", "Leistungen | Blaum Dienstleistungen – Gebäudereinigung Köln",
+    page("leistungen.html", "Leistungen | Blaum Dienstleistungen Köln",
          "Alle Leistungen von Blaum Dienstleistungen in Köln: Praxisreinigung, AirBnB-Service, Baureinigung, Treppenhausreinigung, Hausmeisterservice, Unterhaltsreinigung, Glasreinigung und Grundreinigung.",
          "leistungen", main)
 
@@ -554,8 +582,8 @@ def build_about():
       <span class="eyebrow">Über uns</span>
       <h1 style="font-size:clamp(2.2rem,4.4vw,3.6rem);margin:18px 0 8px">Persönlicher Service für Firmen und Privatkunden in Köln</h1>
       <blockquote>Persönlich, flexibel und professionell.</blockquote>
-      <p>Mein Name ist Pascal Blaum, Gründer von Blaum Dienstleistungen. Mit meinem Team stehe ich für einen Reinigungsservice, auf den Sie sich verlassen können – persönlich, flexibel und professionell.</p>
-      <p>Ob Privatwohnung, Ferienapartment, Praxis oder Büro: Wir sorgen dafür, dass Ihre Räume stets gepflegt und einladend sind. Dabei ist uns der direkte Kontakt zu unseren Kunden besonders wichtig – wir hören zu, gehen auf individuelle Wünsche ein und bieten maßgeschneiderte Lösungen.</p>
+      <p>Mein Name ist Pascal Blaum, Gründer von Blaum Dienstleistungen. Mit meinem Team stehe ich für einen Reinigungsservice, auf den Sie sich verlassen können: persönlich, flexibel und professionell.</p>
+      <p>Ob Privatwohnung, Ferienapartment, Praxis oder Büro: Wir sorgen dafür, dass Ihre Räume stets gepflegt und einladend sind. Dabei ist uns der direkte Kontakt zu unseren Kunden besonders wichtig. Wir hören zu, gehen auf individuelle Wünsche ein und bieten maßgeschneiderte Lösungen.</p>
     </div>
   </div>
 </section>
@@ -578,8 +606,8 @@ def build_about():
   </div>
 </section>
 """ + cta_band("Haben wir Ihr Interesse geweckt?", ["Melden Sie sich gern für eine Beratung bei uns."])
-    page("ueber-uns.html", "Über uns | Blaum Dienstleistungen – Gebäudereinigung Köln",
-         "Blaum Dienstleistungen – persönlicher Service für Firmen und Privatkunden in Köln. Gründer Pascal Blaum und sein Team.",
+    page("ueber-uns.html", "Über uns | Blaum Dienstleistungen Köln",
+         "Blaum Dienstleistungen: persönlicher Service für Firmen und Privatkunden in Köln. Gründer Pascal Blaum und sein Team.",
          "ueber-uns", main)
 
 
@@ -629,7 +657,7 @@ def build_contact():
   </div>
 </section>
 """
-    page("kontakt.html", "Kontakt | Blaum Dienstleistungen – Gebäudereinigung Köln",
+    page("kontakt.html", "Kontakt | Blaum Dienstleistungen Köln",
          "Kontakt zu Blaum Dienstleistungen: Myliusstraße 11, 50823 Köln, Telefon 0173 2831352, info@blaum-dienstleistungen.de.",
          "kontakt", main)
 
@@ -723,9 +751,7 @@ def build_home():
              "Gebäudereinigung in Köln & Umgebung: Unterhaltsreinigung, Praxisreinigung, Glasreinigung, Treppenhausreinigung, Baureinigung, Grundreinigung, AirBnB-Service und Hausmeisterservice.")
     h = h.replace('<link rel="icon"', '<link rel="preload" as="image" href="assets/hero-poster.webp" fetchpriority="high">\n<link rel="icon"')
     html = h + header("start") + "\n<main>\n" + HOME_MAIN + "\n</main>\n" + footer()
-    with open(os.path.join(ROOT, "index.html"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(html)
-    print("wrote index.html")
+    write("index", html)
 
 
 if __name__ == "__main__":
