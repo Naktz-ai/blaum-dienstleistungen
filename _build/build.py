@@ -118,7 +118,7 @@ def footer():
       <span>© <span id="yr"></span> Blaum Dienstleistungen</span>
       <nav><a href="index.html">Startseite</a><a href="leistungen.html">Leistungen</a><a href="kontakt.html">Kontakt</a><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
     </div>
-    <div class="bigword" aria-hidden="true">Blitzblank.</div>
+    <div class="bigword" aria-hidden="true">Blaum.</div>
   </div>
 </footer>
 
