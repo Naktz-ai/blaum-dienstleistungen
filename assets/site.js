@@ -89,3 +89,42 @@ const $ = id => document.getElementById(id);
     sent.querySelector('span').textContent='Danke! Ihr E-Mail-Programm öffnet sich mit Ihrer Anfrage.'; sent.classList.add('show');
   });
 })();
+
+/* home: before/after slider */
+(()=>{
+  const ba=document.getElementById('ba'), knob=document.getElementById('baKnob'); if(!ba||!knob) return;
+  let pos=50, anim=0, dragging=false;
+  function set(p){
+    pos=Math.max(0,Math.min(100,p)); ba.style.setProperty('--pos',pos+'%');
+    const v=Math.round(100-pos); knob.setAttribute('aria-valuenow',v); knob.setAttribute('aria-valuetext',v+' % Nachher');
+    ba.classList.toggle('hide-l',pos<14); ba.classList.toggle('hide-r',pos>86);
+  }
+  const stop=()=>{if(anim){cancelAnimationFrame(anim);anim=0}};
+  const fromEvent=e=>{const r=ba.getBoundingClientRect(); return (e.clientX-r.left)/r.width*100};
+  ba.addEventListener('pointerdown',e=>{stop(); dragging=true; ba.classList.add('drag'); ba.setPointerCapture(e.pointerId); set(fromEvent(e))});
+  ba.addEventListener('pointermove',e=>{if(dragging) set(fromEvent(e))});
+  const end=()=>{dragging=false; ba.classList.remove('drag')};
+  ba.addEventListener('pointerup',end); ba.addEventListener('pointercancel',end);
+  knob.addEventListener('keydown',e=>{
+    const step=e.shiftKey?10:2, k=e.key;
+    if(k==='ArrowLeft'||k==='ArrowDown'){set(pos+step)} else if(k==='ArrowRight'||k==='ArrowUp'){set(pos-step)}
+    else if(k==='Home'){set(100)} else if(k==='End'){set(0)} else return;
+    stop(); e.preventDefault();
+  });
+  set(50);
+  /* gentle hint on first view: wipe across once, then settle in the middle */
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const keys=[[0,50],[900,78],[2000,26],[2900,50]], ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+  function run(){
+    let t0=null, last=null;
+    anim=requestAnimationFrame(function f(now){
+      if(t0===null) t0=now; const t=now-t0;
+      if(t>=keys[keys.length-1][0]){set(50); anim=0; return}
+      let i=0; while(t>keys[i+1][0]) i++;
+      const [a,pa]=keys[i], [b,pb]=keys[i+1]; set(pa+(pb-pa)*ease((t-a)/(b-a)));
+      anim=requestAnimationFrame(f);
+    });
+  }
+  const io=new IntersectionObserver(es=>{if(es[0].isIntersecting){io.disconnect(); setTimeout(()=>{if(!dragging) run()},1300)}},{threshold:.5});
+  io.observe(ba);
+})();
