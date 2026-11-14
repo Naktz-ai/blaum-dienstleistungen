@@ -95,7 +95,7 @@ const $ = id => document.getElementById(id);
 (()=>{
   const win=document.getElementById('wipe'), cv=document.getElementById('grime'); if(!win||!cv) return;
   const ctx=cv.getContext('2d',{willReadFrequently:true});
-  const sq=document.getElementById('squeegee'), txt=document.getElementById('wipeTxt'), fill=document.getElementById('wipeFill'),
+  const sq=document.getElementById('squeegee'), txt=document.getElementById('wipeTxt'), ring=document.getElementById('wipeRing'), pct=document.getElementById('wipePct'), panel=document.getElementById('wipePanel'),
         reset=document.getElementById('wipeReset'), badge=document.getElementById('wipeBadge');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const img=new Image(); img.src='assets/window-dirty.webp';
@@ -109,11 +109,11 @@ const $ = id => document.getElementById(id);
     // same framing as the clean photo (object-fit:cover, 50% 35%)
     const s=Math.max(W/img.naturalWidth,H/img.naturalHeight), w=img.naturalWidth*s, h=img.naturalHeight*s;
     ctx.drawImage(img,(W-w)*.5,(H-h)*.35,w,h);
-    done=false; win.classList.remove('clean'); badge.classList.remove('show'); setProgress(0);
+    done=false; win.classList.remove('clean'); panel.classList.remove('done'); badge.classList.remove('show'); setProgress(0);
   }
   function setProgress(p){
-    fill.style.width=Math.min(100,p/0.7*100)+'%';
-    if(!done) txt.textContent=p<.02&&!replay?'Fenster sauber wischen':`${Math.min(99,Math.round(p/0.7*100))} % sauber`;
+    const v=Math.min(1,p/0.7); ring.style.strokeDashoffset=138.2*(1-v); pct.textContent=Math.min(99,Math.round(v*100));
+    if(!done) txt.textContent=p<.02?(replay?'Los geht’s':'Wischen Sie die Scheibe sauber'):(v<.5?'Weiter so':'Fast geschafft');
   }
   const blade=()=>Math.max(70,W*.26);
   function stamp(x,y){
@@ -138,7 +138,7 @@ const $ = id => document.getElementById(id);
   }
   function finish(){
     done=true; last=null; win.classList.add('clean'); win.classList.remove('wiping');
-    fill.style.width='100%'; txt.textContent='Streifenfrei!';
+    ring.style.strokeDashoffset=0; pct.textContent=100; panel.classList.add('done'); txt.textContent='Streifenfrei!';
     setTimeout(()=>badge.classList.add('show'),350);
   }
   const pos=e=>{const r=cv.getBoundingClientRect(), k=W/r.width; return {x:(e.clientX-r.left)*k,y:(e.clientY-r.top)*k}};
