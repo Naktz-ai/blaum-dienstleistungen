@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SPRITE = open(os.path.join(HERE, "sprite.html"), encoding="utf-8").read()
 HOME_MAIN = open(os.path.join(HERE, "home-main.html"), encoding="utf-8").read()
 
-VER = "7"  # bump after changing style.css or site.js so browsers reload them
+VER = "11"  # bump after changing style.css or site.js so browsers reload them
 PHONE, PHONE_HREF = "0173 2831352", "tel:+491732831352"
 MAIL = "info@blaum-dienstleistungen.de"
 ADDR = "Myliusstraße 11, 50823 Köln"
@@ -758,7 +758,7 @@ def build_datenschutz():
 def build_home():
     h = head("Blaum Dienstleistungen | Gebäudereinigung Köln",
              "Gebäudereinigung in Köln & Umgebung: Unterhaltsreinigung, Praxisreinigung, Glasreinigung, Treppenhausreinigung, Baureinigung, Grundreinigung, AirBnB-Service und Hausmeisterservice.")
-    h = h.replace('<link rel="icon"', '<link rel="preload" as="image" href="assets/hero-poster.webp" fetchpriority="high">\n<link rel="icon"')
+    h = h.replace('<link rel="icon"', '<link rel="preload" as="image" href="assets/window-dirty.webp" fetchpriority="high">\n<link rel="preload" as="image" href="assets/window-clean.webp">\n<link rel="icon"')
     html = h + header("start") + "\n<main>\n" + HOME_MAIN + "\n</main>\n" + footer()
     write("index", html)
 
