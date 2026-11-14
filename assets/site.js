@@ -90,59 +90,119 @@ const $ = id => document.getElementById(id);
   });
 })();
 
-/* home: wipe-to-clean window */
+/* home: soap-foam window – pop the bubbles to reveal the clean view */
 (()=>{
   const win=$('window'), cv=$('grime'); if(!win||!cv) return;
   const ctx=cv.getContext('2d');
-  const sq=$('squeegee'), hint=$('hint'), badge=$('badge'), reset=$('reset');
+  const cur=$('squeegee'), hint=$('hint'), hintTxt=$('hintTxt'), badge=$('badge'), reset=$('reset');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const hv=$('heroVideo'); if(reduce&&hv){hv.removeAttribute('autoplay');hv.pause();}
-  let W=0,H=0,dpr=1,last=null,done=false,checkT=0;
-  function paint(){
+  let W=0,H=0,dpr=1,bubbles=[],fx=[],done=false,released=false,haze=1,total=1,raf=0,visible=true,demo=false,lastT=0;
+  const PAL=['255,160,220','120,230,255','255,236,140','160,255,210','190,170,255'];
+
+  function seed(){
     const r=cv.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2); W=r.width; H=r.height;
     cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.globalCompositeOperation='source-over';
-    const g=ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'rgba(168,160,140,.9)'); g.addColorStop(1,'rgba(130,134,128,.93)');
-    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    let s=7; const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
-    ctx.filter='blur(14px)';
-    for(let i=0;i<26;i++){ctx.fillStyle=`rgba(${80+rnd()*40|0},${72+rnd()*30|0},${58+rnd()*25|0},${.18+rnd()*.2})`;ctx.beginPath();ctx.ellipse(rnd()*W,rnd()*H,30+rnd()*90,20+rnd()*60,rnd()*3,0,7);ctx.fill()}
-    ctx.filter='none';
-    for(let i=0;i<900;i++){ctx.fillStyle=`rgba(40,35,30,${rnd()*.25})`;ctx.fillRect(rnd()*W,rnd()*H,1.5,1.5)}
-    ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=2;
-    for(let i=0;i<8;i++){const x=rnd()*W,y=rnd()*H*.6;ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+4,y+40,x-4,y+90,x+2,y+120+rnd()*80);ctx.stroke()}
-    ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='#000'; ctx.lineCap='round'; ctx.lineJoin='round';
-    done=false; cv.classList.remove('done'); win.classList.remove('clean'); badge.classList.remove('show'); reset.classList.remove('show'); hint.classList.remove('hide');
+    bubbles=[]; fx=[]; done=false; released=false; haze=1;
+    const target=W*H*1.05; let area=0, tries=0;
+    while(area<target && tries<6000){
+      tries++;
+      const big=Math.random()<.22, rad=big?28+Math.random()*26:9+Math.random()*20;
+      const x=Math.random()*W, y=Math.random()*H;
+      if(bubbles.some(b=>Math.hypot(b.x-x,b.y-y)<(b.r+rad)*.72)) continue;
+      bubbles.push({x,y,r:rad,ph:Math.random()*6.28,sp:.6+Math.random()*.8,c:PAL[Math.random()*PAL.length|0],c2:PAL[Math.random()*PAL.length|0],pop:0,vy:0,a:1});
+      area+=Math.PI*rad*rad;
+    }
+    total=bubbles.length;
+    cv.classList.remove('done'); win.classList.remove('clean'); badge.classList.remove('show'); reset.classList.remove('show'); hint.classList.remove('hide');
+    setHint(); kick();
   }
-  function wipe(x,y){
-    ctx.lineWidth=Math.max(56,W*.14);
-    ctx.beginPath(); if(last){ctx.moveTo(last.x,last.y)}else{ctx.moveTo(x-.1,y)} ctx.lineTo(x,y); ctx.stroke(); last={x,y};
-    if(++checkT%12===0) check();
+  const alive=()=>bubbles.filter(b=>!b.pop).length;
+  function setHint(){const n=alive(); hintTxt.textContent = n===total ? 'Blasen platzen lassen' : `Noch ${n} Blasen`}
+
+  function drawBubble(b,t){
+    const wob=reduce?0:Math.sin(t*.0018*b.sp+b.ph);
+    const rx=b.r*(1+.05*wob), ry=b.r*(1-.05*wob), x=b.x+(reduce?0:Math.sin(t*.0011+b.ph)*1.6), y=b.y;
+    ctx.save(); ctx.globalAlpha=b.a; ctx.translate(x,y);
+    const g=ctx.createRadialGradient(-rx*.25,-ry*.3,rx*.1,0,0,rx);
+    g.addColorStop(0,'rgba(255,255,255,.10)'); g.addColorStop(.7,'rgba(255,255,255,.16)');
+    g.addColorStop(.92,`rgba(${b.c},.45)`); g.addColorStop(1,'rgba(255,255,255,.75)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(0,0,rx,ry,0,0,6.283); ctx.fill();
+    const rim=ctx.createLinearGradient(-rx,-ry,rx,ry);
+    rim.addColorStop(0,`rgba(${b.c},.9)`); rim.addColorStop(.5,'rgba(255,255,255,.5)'); rim.addColorStop(1,`rgba(${b.c2},.9)`);
+    ctx.strokeStyle=rim; ctx.lineWidth=Math.max(1.2,b.r*.06); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(-rx*.38,-ry*.42,rx*.2,ry*.11,-.7,0,6.283); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(rx*.42,ry*.38,Math.max(1,rx*.07),0,6.283); ctx.fill();
+    ctx.restore();
   }
-  function check(){
-    const step=24, data=ctx.getImageData(0,0,cv.width,cv.height).data; let clear=0,tot=0;
-    for(let i=3;i<data.length;i+=4*step){tot++; if(data[i]<40) clear++}
-    if(clear/tot>.6 && !done){done=true; cv.classList.add('done'); win.classList.add('clean'); badge.classList.add('show'); reset.classList.add('show'); hint.classList.add('hide')}
+  function frame(t){
+    raf=0; const dt=lastT?Math.min(6,(t-lastT)/16.7):1; lastT=t; ctx.clearRect(0,0,W,H);
+    if(haze>.01){ // milky foam between the bubbles
+      const hg=ctx.createLinearGradient(0,0,0,H); hg.addColorStop(0,`rgba(236,244,248,${.55*haze})`); hg.addColorStop(1,`rgba(214,228,236,${.72*haze})`);
+      ctx.fillStyle=hg; ctx.fillRect(0,0,W,H);
+    }
+    let busy=!reduce&&!done;
+    for(const b of bubbles){
+      if(b.pop) continue;
+      if(released){ b.vy-=.12*dt; b.y+=b.vy*dt; b.a=Math.max(0,b.a-.014*dt); busy=true; }
+      drawBubble(b,t);
+    }
+    if(released){ bubbles=bubbles.filter(b=>!b.pop&&b.a>0&&b.y+b.r>-10); haze=Math.max(0,haze-.04*dt); if(!bubbles.length&&haze<=0&&!fx.length) return finish(); }
+    fx=fx.filter(f=>f.k<1);
+    for(const f of fx){ // pop: ring + droplets
+      f.k+=(reduce?.2:.07)*dt; busy=true;
+      ctx.strokeStyle=`rgba(255,255,255,${.8*(1-f.k)})`; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(f.x,f.y,f.r*(1+f.k*.7),0,6.283); ctx.stroke();
+      for(const d of f.d){ const dist=f.r*(.6+f.k*1.3); ctx.fillStyle=`rgba(${f.c},${1-f.k})`; ctx.beginPath(); ctx.arc(f.x+Math.cos(d)*dist,f.y+Math.sin(d)*dist+f.k*f.k*12,2.2*(1-f.k)+.6,0,6.283); ctx.fill(); }
+    }
+    busyLoop=false; if((busy||released)&&visible){ busyLoop=true; raf=requestAnimationFrame(frame) }
   }
+  function kick(){ if(!raf){ if(!busyLoop) lastT=0; busyLoop=true; raf=requestAnimationFrame(frame) } }
+  let busyLoop=false;
+
+  function popAt(x,y,reach=16){
+    if(done||released) return;
+    let hit=0;
+    for(const b of bubbles){
+      if(b.pop) continue;
+      if(Math.hypot(b.x-x,b.y-y)<b.r+reach){ b.pop=1; hit++; fx.push({x:b.x,y:b.y,r:b.r,k:0,c:b.c,d:Array.from({length:6},()=>Math.random()*6.283)}); }
+    }
+    if(!hit) return;
+    cur.classList.add('hit'); setTimeout(()=>cur.classList.remove('hit'),120);
+    haze=Math.max(0,alive()/total*1.1-.1);
+    setHint(); kick();
+    if(alive()/total<.3){ released=true; hint.classList.add('hide'); kick(); }
+  }
+  function finish(){
+    if(done) return; done=true; released=false; ctx.clearRect(0,0,W,H);
+    cv.classList.add('done'); win.classList.add('clean'); badge.classList.add('show'); reset.classList.add('show');
+  }
+
   const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
-  const moveSq=e=>{const r=win.getBoundingClientRect(); sq.style.left=(e.clientX-r.left)+'px'; sq.style.top=(e.clientY-r.top)+'px'};
-  let demo=false;
-  win.addEventListener('pointermove',e=>{if(demo)return; moveSq(e); if(done) return; hint.classList.add('hide'); const p=pos(e); if(e.pointerType==='mouse'||e.buttons) wipe(p.x,p.y)});
-  win.addEventListener('pointerdown',e=>{last=null; const p=pos(e); if(!done) wipe(p.x,p.y)});
+  const moveCur=e=>{const r=win.getBoundingClientRect(); cur.style.left=(e.clientX-r.left)+'px'; cur.style.top=(e.clientY-r.top)+'px'};
+  let last=null;
+  function sweep(p){ // pop along the path so fast moves don't skip bubbles
+    if(last){const dx=p.x-last.x, dy=p.y-last.y, n=Math.ceil(Math.hypot(dx,dy)/10); for(let i=1;i<=n;i++) popAt(last.x+dx*i/n,last.y+dy*i/n)} else popAt(p.x,p.y);
+    last=p;
+  }
+  win.addEventListener('pointermove',e=>{if(demo)return; moveCur(e); if(e.pointerType==='mouse'||e.buttons) sweep(pos(e))});
+  win.addEventListener('pointerdown',e=>{if(demo)return; last=null; moveCur(e); sweep(pos(e))});
   win.addEventListener('pointerleave',()=>last=null);
   win.addEventListener('pointerup',()=>last=null);
-  reset.addEventListener('click',e=>{e.stopPropagation(); last=null; paint()});
-  let rt; addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{if(Math.abs(cv.getBoundingClientRect().width-W)>2){last=null;paint()}},200)});
-  paint();
-  if(!reduce){
+  reset.addEventListener('click',e=>{e.stopPropagation(); last=null; seed()});
+  let rt; addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{if(Math.abs(cv.getBoundingClientRect().width-W)>2&&!done){last=null;seed()}},200)});
+  new IntersectionObserver(es=>{visible=es[0].isIntersecting; if(visible) kick()}).observe(win);
+  seed();
+
+  if(!reduce){ // short auto demo: the wand pops a curved line of bubbles
     setTimeout(()=>{
-      demo=true; win.classList.add('demo'); last=null; const t0=performance.now(), dur=1500;
+      if(done||released) return;
+      demo=true; win.classList.add('demo'); last=null; const s=performance.now(), dur=1400;
       const wr=win.getBoundingClientRect(), cr=cv.getBoundingClientRect(), ox=cr.left-wr.left, oy=cr.top-wr.top;
-      (function f(t){const k=Math.min(1,(t-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
-        const x=W*(.12+.76*e), y=H*(.3+Math.sin(e*Math.PI)*.08);
-        wipe(x,y); sq.style.left=(x+ox)+'px'; sq.style.top=(y+oy)+'px';
+      (function f(t){const k=Math.min(1,(t-s)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+        const x=W*(.15+.7*e), y=H*(.62-Math.sin(e*Math.PI)*.22);
+        sweep({x,y}); cur.style.left=(x+ox)+'px'; cur.style.top=(y+oy)+'px';
         if(k<1) requestAnimationFrame(f); else {demo=false; win.classList.remove('demo'); last=null}
-      })(t0);
+      })(s);
     },1200);
   }
 })();

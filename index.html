@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=3">
+<link rel="stylesheet" href="assets/style.css?v=5">
 </head>
 <body>
 
@@ -94,17 +94,13 @@
       <div class="window" id="window">
         <div class="window-inner">
           <video class="scene" id="heroVideo" autoplay muted loop playsinline preload="auto" poster="assets/hero-poster.webp" aria-label="Reinigungskraft zieht eine große Fensterfront ab, draußen der Kölner Dom und der Rhein"><source src="assets/hero.mp4?v=2" type="video/mp4"></video>
-          <canvas id="grime" aria-label="Interaktives Fenster: Wischen Sie darüber, um es zu reinigen"></canvas>
+          <canvas id="grime" aria-label="Interaktives Fenster voller Seifenschaum: Fahren Sie darüber, um die Blasen platzen zu lassen"></canvas>
         </div>
-        <svg class="squeegee" id="squeegee" viewBox="0 0 84 70" aria-hidden="true">
-          <rect x="2" y="4" width="80" height="12" rx="4" fill="#0B1B2E"/>
-          <rect x="2" y="14" width="80" height="5" rx="2" fill="#3FE0B5"/>
-          <rect x="37" y="18" width="10" height="48" rx="5" fill="#14304F"/>
-        </svg>
-        <div class="window-hint" id="hint"><svg class="ico" style="width:18px;height:18px"><use href="#i-glas"/></svg>Wischen Sie mal drüber</div>
+        <div class="squeegee" id="squeegee" aria-hidden="true"></div>
+        <div class="window-hint" id="hint"><svg class="ico" style="width:18px;height:18px"><use href="#i-grund"/></svg><span id="hintTxt">Blasen platzen lassen</span></div>
         <div class="sparkle-badge" id="badge">Blitzblank <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="display:inline;vertical-align:-2px"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="currentColor"/></svg></div>
         <div class="win-bar" id="winbar"><span><b>Glasreinigung</b> · Köln</span><span class="live"></span>Streifenfrei</div>
-        <button class="reset" id="reset" aria-label="Fenster wieder verschmutzen"><svg class="ico"><use href="#i-reset"/></svg></button>
+        <button class="reset" id="reset" aria-label="Neuen Seifenschaum auftragen"><svg class="ico"><use href="#i-reset"/></svg></button>
       </div>
       <div class="floating f1"><span class="ic"><svg class="ico"><use href="#i-pin"/></svg></span><span><b>Köln &amp; Umgebung</b>Regional verwurzelt</span></div>
       <div class="floating f2"><span class="ic"><svg class="ico"><use href="#i-clock"/></svg></span><span><b>Flexibel</b>auch kurzfristig</span></div>
@@ -269,6 +265,6 @@
   <a href="kontakt/">Angebot anfragen</a>
 </div>
 
-<script src="assets/site.js?v=3"></script>
+<script src="assets/site.js?v=5"></script>
 </body>
 </html>
