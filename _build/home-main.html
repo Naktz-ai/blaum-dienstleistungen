@@ -22,11 +22,12 @@
 
     <div class="hero-visual">
       <div class="window" id="window">
-        <div class="window-inner wipe" id="wipe" style="--p:0">
+        <div class="window-inner wipe" id="wipe">
           <img class="scene" src="assets/window-clean.webp" alt="Streifenfrei gereinigte Fensterfront mit klarem Blick auf Kölner Dom, Hohenzollernbrücke und Rhein" width="880" height="1184" fetchpriority="high">
           <canvas class="grime" id="grime" aria-hidden="true"></canvas>
-          <div class="blade" id="blade" aria-hidden="true"><i class="blade-handle"></i><i class="blade-rubber"></i><i class="blade-drips"></i></div>
-          <div class="shine" aria-hidden="true"></div>
+          <div class="squeegee" id="squeegee" aria-hidden="true"><svg viewBox="0 0 120 90" width="120" height="90"><rect x="4" y="8" width="112" height="14" rx="7" fill="#0B1B2E"/><rect x="8" y="2" width="104" height="8" rx="4" fill="#3FE0B5"/><rect x="54" y="20" width="12" height="66" rx="6" fill="#0B1B2E"/><rect x="56" y="58" width="8" height="26" rx="4" fill="#3FE0B5" opacity=".9"/></svg></div>
+          <div class="wipe-hint" id="wipeHint" role="status"><span class="wipe-dot"></span><span id="wipeTxt">Fenster sauber wischen</span><button class="wipe-reset" id="wipeReset" type="button">Nochmal</button></div>
+          <div class="wipe-bar" aria-hidden="true"><i id="wipeFill"></i></div>
         </div>
         <div class="sparkle-badge" id="wipeBadge">Blitzblank <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="display:inline;vertical-align:-2px"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" fill="currentColor"/></svg></div>
         <a class="win-bar" href="glasreinigung.html"><span><b>Glasreinigung</b> · Köln</span><span class="live"></span>Streifenfrei</a>
