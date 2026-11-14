@@ -13,6 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SPRITE = open(os.path.join(HERE, "sprite.html"), encoding="utf-8").read()
 HOME_MAIN = open(os.path.join(HERE, "home-main.html"), encoding="utf-8").read()
 
+VER = "3"  # bump after changing style.css or site.js so browsers reload them
 PHONE, PHONE_HREF = "0173 2831352", "tel:+491732831352"
 MAIL = "info@blaum-dienstleistungen.de"
 ADDR = "Myliusstraße 11, 50823 Köln"
@@ -50,7 +51,7 @@ def head(title, desc):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v={VER}">
 </head>
 <body>
 
@@ -128,13 +129,13 @@ def footer():
   <a href="kontakt.html">Angebot anfragen</a>
 </div>
 
-<script src="assets/site.js"></script>
+<script src="assets/site.js?v={VER}"></script>
 </body>
 </html>
 """
 
 
-LINK = re.compile(r'(href|src)="(?!https?:|mailto:|tel:|#|data:)([^"]*)"')
+LINK = re.compile(r'(href|src|poster)="(?!https?:|mailto:|tel:|#|data:)([^"]*)"')
 
 
 def clean_urls(html, prefix):
@@ -487,6 +488,14 @@ def more_services(exclude):
 """
 
 
+def media(img, name):
+    """Looping clip if assets/vid-<img>.mp4 exists, otherwise the still photo."""
+    if os.path.exists(os.path.join(ROOT, "assets", f"vid-{img}.mp4")):
+        return (f'<video autoplay muted loop playsinline preload="metadata" poster="assets/svc-{img}.webp" '
+                f'aria-label="{e(name)}"><source src="assets/vid-{img}.mp4" type="video/mp4"></video>')
+    return f'<img src="assets/svc-{img}.webp" alt="{e(name)}" fetchpriority="high">'
+
+
 def build_service(slug):
     _, name, icon, _ = svc_by_slug(slug)
     d = DETAIL[slug]
@@ -506,7 +515,7 @@ def build_service(slug):
       </div>
     </div>
     <div class="visual">
-      <div class="frame"><img src="assets/svc-{d["img"]}.webp" alt="{e(name)}" fetchpriority="high"><span class="badge">{ico(icon)}{e(d["badge"])}</span></div>
+      <div class="frame">{media(d["img"], name)}<span class="badge">{ico(icon)}{e(d["badge"])}</span></div>
       <div class="floating f1"><span class="ic">{ico("i-pin")}</span><span><b>Köln &amp; Umgebung</b>Regional verwurzelt</span></div>
       <div class="floating f2"><span class="ic">{ico("i-euro")}</span><span><b>Faire Preise</b>individuelles Angebot</span></div>
     </div>

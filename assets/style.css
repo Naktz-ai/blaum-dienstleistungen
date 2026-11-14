@@ -18,7 +18,6 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 h1,h2,h3{font-family:var(--display);line-height:1.02;letter-spacing:-.025em;font-weight:800}
 h2{font-size:clamp(2.2rem,5vw,3.8rem)}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.78rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mint-d)}
-.eyebrow::before{content:"";width:8px;height:8px;background:currentColor;border-radius:50%}
 .lead{font-size:clamp(1.05rem,1.6vw,1.2rem);color:var(--muted);max-width:56ch}
 .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 24px;border-radius:999px;font-weight:600;font-size:.98rem;transition:transform .25s,box-shadow .25s,background .25s}
 .btn-primary{background:var(--ink);color:#fff;box-shadow:0 10px 30px -10px rgba(11,27,46,.6)}
@@ -316,7 +315,7 @@ footer{padding:80px 0 40px}
 .phero .intro p{color:var(--muted);margin-bottom:14px;max-width:60ch}
 .phero .hero-ctas{margin:30px 0 0}
 .frame{position:relative;border-radius:36px;background:var(--ink);padding:14px;box-shadow:0 40px 80px -30px rgba(11,27,46,.45)}
-.frame img{width:100%;aspect-ratio:4/4.4;object-fit:cover;border-radius:24px}
+.frame img,.frame video{display:block;width:100%;aspect-ratio:4/4.4;object-fit:cover;border-radius:24px;background:#14304F}
 .frame.wide img{aspect-ratio:3/2.4}
 .frame .badge{position:absolute;top:32px;left:32px;background:var(--mint);color:var(--ink);font-family:var(--display);font-weight:800;padding:10px 18px;border-radius:999px;transform:rotate(-4deg);display:flex;align-items:center;gap:8px}
 .frame .badge .ico{width:18px;height:18px}

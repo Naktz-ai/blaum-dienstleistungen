@@ -44,6 +44,7 @@ const $ = id => document.getElementById(id);
   burger.addEventListener('click',()=>{const o=header.classList.toggle('open'); burger.setAttribute('aria-expanded',o)});
   document.querySelectorAll('.menu a').forEach(a=>a.addEventListener('click',()=>{header.classList.remove('open');burger.setAttribute('aria-expanded',false)}));
   addEventListener('keydown',e=>{if(e.key==='Escape'&&header.classList.contains('open')){header.classList.remove('open');burger.setAttribute('aria-expanded',false);burger.focus()}});
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll('video[autoplay]').forEach(v=>{v.removeAttribute('autoplay');v.pause()});
   const yr=$('yr'); if(yr) yr.textContent=new Date().getFullYear();
 })();
 
